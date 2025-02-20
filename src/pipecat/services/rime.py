@@ -51,11 +51,18 @@ class RimeHttpTTSService(TTSService):
         self.set_voice(voice_id)
         self.set_model_name(model)
 
+        self._output_dir = None
+
         if params.inline_speed_alpha:
             self._settings["inlineSpeedAlpha"] = params.inline_speed_alpha
 
     def can_generate_metrics(self) -> bool:
         return True
+
+    async def start(self, frame: StartFrame):
+        super().start(frame)
+        if frame.metadata:
+            self._output_dir = frame.metadata["output_dir"]
 
     async def run_tts(self, text: str) -> AsyncGenerator[Frame, None]:
         logger.debug(f"Generating TTS: [{text}]")
@@ -90,14 +97,21 @@ class RimeHttpTTSService(TTSService):
                     chunk_size = 8192
                     first_chunk = True
 
+                    buffer = b""
                     async for chunk in response.content.iter_chunked(chunk_size):
                         if first_chunk:
                             await self.stop_ttfb_metrics()
                             first_chunk = False
 
                         if chunk:
+                            buffer += chunk
                             frame = TTSAudioRawFrame(chunk, self.sample_rate, 1)
                             yield frame
+
+                    if buffer and self._output_dir:
+                        await record_audio(self._output_dir,
+                                           "2025-02-20.13.43.43.333.wav",
+                                           buffer)
 
             yield TTSStoppedFrame()
 
