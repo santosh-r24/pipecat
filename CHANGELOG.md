@@ -82,6 +82,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed an issue in `RimeTTSService` where the last line of text sent didn't result in an audio output being generated.
 
+### Other
+
+- Added a Pipecat Cloud deployment example to the `examples/deployment` directory.
+
 ## [0.0.58] - 2025-02-26
 
 ### Added
