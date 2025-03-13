@@ -51,8 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `speech_threshold` parameter to `GladiaSTTService`.
 
 - Allow passing user (`user_kwargs`) and assistant (`assistant_kwargs`) context
-  aggregator parameters when using `create_context_aggregator()`. The values are
-  passed as a mapping that will then be converted to arguments.
+  aggregator parameters when using `create_context_aggregator()`. The values
+  are passed as a mapping that will then be converted to arguments.
 
 - Added `speed` as an `InputParam` for both `ElevenLabsTTSService` and
   `ElevenLabsHttpTTSService`.
@@ -70,8 +70,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   OpenAI-compatible interface. Added foundational example
   `14o-function-calling-gemini-openai-format.py`.
 
-- Added `AzureRealtimeBetaLLMService` to support Azure's OpeanAI Realtime API. Added
-  foundational example `19a-azure-realtime-beta.py`.
+- Added `AzureRealtimeBetaLLMService` to support Azure's OpeanAI Realtime API.
+  Added foundational example `19a-azure-realtime-beta.py`.
 
 ### Changed
 
@@ -80,11 +80,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- Fixed an issue in `RimeTTSService` where the last line of text sent didn't result in an audio output being generated.
+- Fixed an issue in `RimeTTSService` where the last line of text sent didn't
+  result in an audio output being generated.
 
 ### Other
 
-- Added a Pipecat Cloud deployment example to the `examples/deployment` directory.
+- Added a Pipecat Cloud deployment example to the `examples/deployment`
+  directory.
 
 ## [0.0.58] - 2025-02-26
 
