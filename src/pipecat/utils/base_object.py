@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD 2-Clause License
 #
 
+import asyncio
 import inspect
 from abc import ABC
 from typing import Optional
@@ -19,6 +20,11 @@ class BaseObject(ABC):
         self._name = name or f"{self.__class__.__name__}#{obj_count(self)}"
         self._event_handlers: dict = {}
 
+        self._scheduled_tasks = set()
+
+        self._scheduler_queue = asyncio.Queue()
+        self._scheduler_task = asyncio.create_task(self._scheduler_task_handler())
+
     @property
     def id(self) -> int:
         return self._id
@@ -26,6 +32,12 @@ class BaseObject(ABC):
     @property
     def name(self) -> str:
         return self._name
+
+    async def cleanup(self):
+        if self._scheduled_tasks:
+            event_names, tasks = zip(*self._scheduled_tasks)
+            logger.debug(f"{self} wating on event handlers to finish {list(event_names)}...")
+            await asyncio.wait(tasks)
 
     def event_handler(self, event_name: str):
         def decorator(handler):
@@ -45,6 +57,9 @@ class BaseObject(ABC):
         self._event_handlers[event_name] = []
 
     async def _call_event_handler(self, event_name: str, *args, **kwargs):
+        await self._scheduler_queue.put((event_name, args, kwargs))
+
+    async def _run_task(self, event_name: str, *args, **kwargs):
         try:
             for handler in self._event_handlers[event_name]:
                 if inspect.iscoroutinefunction(handler):
@@ -53,6 +68,26 @@ class BaseObject(ABC):
                     handler(self, *args, **kwargs)
         except Exception as e:
             logger.exception(f"Exception in event handler {event_name}: {e}")
+
+    def _task_finished(self, task: asyncio.Task):
+        tuple_to_remove = next((t for t in self._scheduled_tasks if t[1] == task), None)
+        if tuple_to_remove:
+            self._scheduled_tasks.discard(tuple_to_remove)
+
+    async def _scheduler_task_handler(self):
+        while True:
+            (event_name, args, kwargs) = await self._scheduler_queue.get()
+
+            # Create the task.
+            task = asyncio.create_task(self._run_task(event_name, *args, **kwargs))
+
+            # Add it to our list of event tasks.
+            self._scheduled_tasks.add((event_name, task))
+
+            # Remove the task from the event tasks list when the task completes.
+            task.add_done_callback(self._task_finished)
+
+            self._scheduler_queue.task_done()
 
     def __str__(self):
         return self.name
